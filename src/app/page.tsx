@@ -52,6 +52,8 @@ export default function Home() {
     false
   );
 
+  const [details, setDetails] = useState<ProductType | boolean>(false);
+
   const [activePage, setActivePage] = useState(1);
   const [search, setSearch] = useState("");
   const handlePagination = (value: number) => {
@@ -92,6 +94,44 @@ export default function Home() {
           data={typeof openSideModal === "boolean" ? undefined : openSideModal}
         />
       )}
+      {details && (
+        <CenterModal
+          size="sm"
+          open={typeof details === "boolean" ? details : false}
+          handleOpen={() => setDetails(false)}>
+          <div className="flex flex-col gap-4 items-center">
+            <div className="flex flex-col gap-2 text-center items-center justify-center">
+              <p> Title: {typeof details !== "boolean" && details?.title}</p>
+
+              <p>Availablity Status : {details?.availabilityStatus} </p>
+              <p>Weight : {details?.weight}</p>
+              <p>Category : {details?.category}</p>
+              <p>Shipping Information : {details?.shippingInformation} </p>
+              <p>
+                Warranty Information
+                {details?.warrantyInformation}
+              </p>
+              <p>
+                Reviews :{" "}
+                {details?.reviews.map((review) => {
+                  return (
+                    <div key={review.id} className="flex flex-col gap-2">
+                      <p>Rating : {review.rating}</p>
+                      <p>Comment : {review.comment}</p>
+                    </div>
+                  );
+                })}
+              </p>
+            </div>
+            <Button
+              onClick={() => setDetails(false)}
+              ripple={true}
+              className="bg-[#0C53A1] flex items-center justify-center space-x-2 text-white px-4 py-2 text-sm w-20 rounded-lg">
+              <p>Close</p>
+            </Button>
+          </div>
+        </CenterModal>
+      )}
       {openCenterModal && (
         <CenterModal
           size={"sm"}
@@ -128,8 +168,7 @@ export default function Home() {
                 onClick={() => {
                   if (typeof openCenterModal !== "boolean") {
                     onDelete(openCenterModal.id);
-                  }
-                  setOpenCenterModal(false);
+                  } else setOpenCenterModal(false);
                 }}
                 className="bg-[#FF0000] flex items-center justify-center space-x-2 text-white px-4 py-2 text-sm w-20 rounded-lg">
                 <p>Delete</p>
@@ -177,10 +216,11 @@ export default function Home() {
             }) => {
               return (
                 <Card
+                  onClick={() => setDetails(product)}
                   key={product.id}
                   color="transparent"
                   shadow={true}
-                  className="w-full max-w-[26rem]  shadow-white shadow-sm">
+                  className="w-full max-w-[26rem] hover:scale-105 cursor-pointer  shadow-white shadow-sm">
                   <CardHeader color="blue-gray" className="relative h-24">
                     <img
                       src={
