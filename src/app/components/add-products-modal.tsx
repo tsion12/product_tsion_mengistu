@@ -150,6 +150,11 @@ const AddProductsModal = ({ setOpenSideModal, refetch, data }: PropType) => {
                     <p className="font-bold">Tags</p>
                     <FormInput name="tags" placeholder="tags" />
                   </div>
+                  {formikProps.values.tags.split(",").map((tag, index) => (
+                    <span key={index} className="text-gray-400 text-sm">
+                      {tag}
+                    </span>
+                  ))}
                 </div>
 
                 <div className="flex justify-end w-full mt-8">
