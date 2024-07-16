@@ -171,23 +171,26 @@ export default function Home() {
         </h1>
         <div className="w-full flex flex-col gap-4 md:flex-row item md:justify-between my-4">
           <div className="flex w-full items-center justify-between mt-4">
-            <div className="relative ">
-              <input
-                type="text"
-                placeholder="Search"
-                className="border border-gray-300 rounded-md py-2 px-4 bg-[#C9C9C91F] focus:outline-none focus:ring-2 focus:ring-primary-500 w-96 mx-auto"
-                value={typing}
-                onChange={(e) => setTyping(e.target.value)}
-              />
-              <span
+            <div className="flex gap-2">
+              <div>
+                <input
+                  type="text"
+                  placeholder="Search"
+                  className="border border-gray-300 rounded-md py-2 px-4 bg-[#C9C9C91F] focus:outline-none focus:ring-2 focus:ring-primary-500 w-96 mx-auto"
+                  value={typing}
+                  onChange={(e) => setTyping(e.target.value)}
+                />
+              </div>
+
+              <button
                 onClick={
                   typing.length > 2
                     ? () => setSearch(typing)
                     : () => setSearch("")
                 }
-                className="absolute right-3 top-2.5">
-                <AiOutlineSearch className="text-gray-400" />
-              </span>
+                className="  bg-indigo-700 p-6 bg-gradient-to-r from-indigo-600 to-pink-500 flex items-center justify-center space-x-2 text-white py-2 w-60 text-xs rounded-lg">
+                search
+              </button>
             </div>
           </div>
           <Button
@@ -205,7 +208,7 @@ export default function Home() {
                 key={product.id}
                 color="transparent"
                 shadow={true}
-                className="w-full max-w-[26rem]   shadow-white shadow-sm">
+                className="w-full self-start max-w-[26rem]   shadow-white shadow-sm">
                 <CardHeader
                   onClick={() => setDetails(product)}
                   color="blue-gray"
