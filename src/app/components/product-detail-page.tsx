@@ -6,7 +6,7 @@ import { Button, Rating, Typography } from "@material-tailwind/react";
 interface ProductdataModalProps {
   open: boolean;
   handleOpen: () => void;
-  productData?: ProductType;
+  data?: ProductType;
 }
 
 const ProductdataModal = ({
@@ -40,7 +40,7 @@ const ProductdataModal = ({
             <div className="my-8 flex items-center gap-2">
               <Rating value={5} className="text-amber-500" />
               <Typography className="!text-sm font-bold !text-gray-700">
-                {data.rating}
+                {data?.rating}
                 (100 reviews)
               </Typography>
             </div>
@@ -69,11 +69,11 @@ const ProductdataModal = ({
           </div>
           <p>
             {" "}
-            <p key={data.id}>
+            <p key={data?.id}>
               Reviews :{" "}
               {data?.reviews.map((review) => {
                 return (
-                  <figure key={review.ids} className="w-full">
+                  <figure key={review.id} className="w-full">
                     <div className="flex items-center mb-4 text-yellow-300">
                       <svg
                         className="w-5 h-5 me-1"

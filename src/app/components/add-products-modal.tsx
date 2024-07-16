@@ -34,8 +34,8 @@ const validate = (values: ProductValues) => {
   try {
     validationSchema.parse(values);
     return {};
-  } catch (error) {
-    return error.formErrors.fieldErrors;
+  } catch (error: unknown) {
+    return (error as any).formErrors.fieldErrors;
   }
 };
 

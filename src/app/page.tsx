@@ -30,6 +30,10 @@ export interface ProductType {
   rating: number;
   tags: string[];
   images: string;
+  category: string;
+  warrantyInformation: string;
+  thumbnail: string;
+
   reviews: {
     id: number;
     reviewerName: string;
@@ -107,15 +111,15 @@ export default function Home() {
       )}
       {details && (
         <ProductDetailsModal
-          open={typeof details !== "boolean" ? details : false}
+          open={typeof details !== "boolean" ? !details : false}
           handleOpen={() => setDetails(false)}
-          data={details}
+          data={details as ProductType}
         />
       )}
       {openCenterModal && (
         <CenterModal
           size={"sm"}
-          open={typeof openCenterModal !== "boolean" ? openCenterModal : false}
+          open={typeof openCenterModal !== "boolean" ? !openCenterModal : false}
           handleOpen={() => setOpenCenterModal(false)}>
           <div className="flex flex-col gap-4 items-center">
             <p className="text-xl font-bold text-base-main">
@@ -193,88 +197,79 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 h-[70vh] md:h-[75vh] overflow-y-auto gap-10 p-10">
-          {data?.products?.map(
-            (product: {
-              id: number;
-              title: string;
-              description: string;
-              price: string;
-              rating: string;
-              tags: string;
-            }) => {
-              return (
-                <Card
-                  key={product.id}
-                  color="transparent"
-                  shadow={true}
-                  className="w-full max-w-[26rem]   shadow-white shadow-sm">
-                  <CardHeader
-                    onClick={() => setDetails(product)}
-                    color="blue-gray"
-                    className="relative h-24 hover:scale-105 cursor-pointer">
-                    <img
-                      src={
-                        product.thumbnail
-                          ? product.thumbnail
-                          : "https://images.unsplash.com/photo-1540553016722-983e48a2cd10?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80"
-                      }
-                      alt=""
-                    />
-                  </CardHeader>
-                  <CardBody>
-                    <Typography variant="h5" color="red">
-                      {product.title}
-                    </Typography>
-                    <Typography className="h-28 overflow-y-auto">
-                      {product.description}
-                    </Typography>
-                    <div className="flex w-full items-center justify-between gap-0.5">
-                      <div className="flex items-center justify-between">
-                        <div className="5 flex items-center gap-0">
-                          <StarIcon />
+          {data?.products?.map((product: ProductType) => {
+            return (
+              <Card
+                key={product.id}
+                color="transparent"
+                shadow={true}
+                className="w-full max-w-[26rem]   shadow-white shadow-sm">
+                <CardHeader
+                  onClick={() => setDetails(product)}
+                  color="blue-gray"
+                  className="relative h-24 hover:scale-105 cursor-pointer">
+                  <img
+                    src={
+                      product.thumbnail
+                        ? product.thumbnail
+                        : "https://images.unsplash.com/photo-1540553016722-983e48a2cd10?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80"
+                    }
+                    alt=""
+                  />
+                </CardHeader>
+                <CardBody>
+                  <Typography variant="h5" color="red">
+                    {product.title}
+                  </Typography>
+                  <Typography className="h-28 overflow-y-auto">
+                    {product.description}
+                  </Typography>
+                  <div className="flex w-full items-center justify-between gap-0.5">
+                    <div className="flex items-center justify-between">
+                      <div className="5 flex items-center gap-0">
+                        <StarIcon />
 
-                          {product.rating}
-                        </div>
+                        {product.rating}
                       </div>
-                      <Typography color="white" className="text-lg font-bold">
-                        {product.price} $
-                      </Typography>
                     </div>
-                    <div className="w-full  flex items-center justify-between">
-                      <Typography color="gray">#{product.tags}</Typography>
-                      <p
-                        onClick={() => setDetails(product)}
-                        className=" text-lg text-blue-800 hover:underline cursor-pointer ">
-                        {" "}
-                        details
-                      </p>
-                    </div>
-                  </CardBody>
-                  <CardFooter className="pt-0">
-                    <div className="flex gap-2 w-full items-center justify-center ">
-                      <Button
-                        onClick={() => {
-                          setOpenCenterModal(product);
-                          console.log(product);
-                        }}
-                        color="red"
-                        ripple={true}
-                        className="w-full">
-                        DELETE
-                      </Button>
-                      <Button
-                        onClick={() => setOpenSideModal(product)}
-                        color="blue"
-                        ripple={true}
-                        className="w-full">
-                        EDIT
-                      </Button>
-                    </div>
-                  </CardFooter>
-                </Card>
-              );
-            }
-          )}
+                    <Typography color="white" className="text-lg font-bold">
+                      {product.price} $
+                    </Typography>
+                  </div>
+                  <div className="w-full  flex items-center justify-between">
+                    <Typography color="gray">#{product.tags}</Typography>
+                    <p
+                      onClick={() => setDetails(product)}
+                      className=" text-lg text-blue-800 hover:underline cursor-pointer ">
+                      {" "}
+                      details
+                    </p>
+                  </div>
+                </CardBody>
+                <CardFooter className="pt-0">
+                  <div className="flex gap-2 w-full items-center justify-center ">
+                    <Button
+                      onClick={() => {
+                        setOpenCenterModal(product);
+                        console.log(product);
+                      }}
+                      color="red"
+                      ripple={true}
+                      className="w-full">
+                      DELETE
+                    </Button>
+                    <Button
+                      onClick={() => setOpenSideModal(product)}
+                      color="blue"
+                      ripple={true}
+                      className="w-full">
+                      EDIT
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card>
+            );
+          })}
         </div>
         <div className="w-full flex justify-end mt-4">
           <Pagination
