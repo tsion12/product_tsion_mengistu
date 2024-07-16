@@ -1,113 +1,251 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useQuery } from "@tanstack/react-query";
+import Loading from "./components/loading";
+import { deleteProduct, getAllProducts } from "@/api/get-movies";
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  Typography,
+  Avatar,
+  Button,
+  CardFooter,
+} from "@material-tailwind/react";
+import { useState } from "react";
+import AddProductsModal from "./components/add-products-modal";
+import toast from "react-hot-toast";
+import CenterModal from "./common/center-modal";
+import Pagination from "./common/pagination";
+import { AiOutlineSearch } from "react-icons/ai";
+
+export interface ProductType {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  rating: number;
+  tags: string;
+  images: string;
+}
+
+function StarIcon() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className="h-5 w-5 text-yellow-700">
+      <path
+        fillRule="evenodd"
+        d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+export default function Home() {
+  const [openSideModal, setOpenSideModal] = useState<ProductType | boolean>(
+    false
+  );
+  const [openCenterModal, setOpenCenterModal] = useState<ProductType | boolean>(
+    false
+  );
+
+  const [activePage, setActivePage] = useState(1);
+  const [search, setSearch] = useState("");
+  const handlePagination = (value: number) => {
+    setActivePage(value);
+  };
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryFn: async () => await getAllProducts(),
+    queryKey: ["products"], //Array according to Documentation
+  });
+
+  const onDelete = async (id: number) => {
+    try {
+      const response = await deleteProduct(id);
+      const { isDeleted, deletedOn } = response.data;
+
+      if (isDeleted) {
+        toast.success("Product deleted successfully");
+        refetch();
+      } else {
+        toast.error("Failed to delete product");
+      }
+    } catch (error) {
+      toast.error("Failed to delete product");
+    }
+  };
+
+  if (isLoading) return <Loading />;
+  if (isError) return <div>Sorry There was an Error</div>;
+
+  console.log("render", data.products);
+  return (
+    <>
+      {" "}
+      {openSideModal && (
+        <AddProductsModal
+          refetch={refetch}
+          setOpenSideModal={setOpenSideModal}
+          data={typeof openSideModal === "boolean" ? undefined : openSideModal}
+        />
+      )}
+      {openCenterModal && (
+        <CenterModal
+          size={"sm"}
+          open={typeof openCenterModal === "boolean" ? openCenterModal : false}
+          handleOpen={() => setOpenCenterModal(false)}>
+          <div className="flex flex-col gap-4 items-center">
+            <p className="text-xl font-bold text-base-main">
+              {" "}
+              Are you sure you want to delete this Product?
+              <div className="flex flex-col my-5 gap-2 text-red-600 items-center justify-center">
+                {" "}
+                <p>
+                  {" "}
+                  Title:{" "}
+                  {typeof openCenterModal !== "boolean" &&
+                    openCenterModal?.title}
+                </p>
+                <p>
+                  Description
+                  {typeof openCenterModal !== "boolean" &&
+                    openCenterModal?.description}
+                </p>
+              </div>
+            </p>
+            <div className="flex gap-4">
+              <button
+                onClick={() => {
+                  setOpenCenterModal(false);
+                }}
+                className="bg-[#0C53A1] flex items-center justify-center space-x-2 text-white px-4 py-2 text-sm w-20 rounded-lg">
+                <p>No</p>
+              </button>
+              <button
+                onClick={() => {
+                  if (typeof openCenterModal !== "boolean") {
+                    onDelete(openCenterModal.id);
+                  }
+                  setOpenCenterModal(false);
+                }}
+                className="bg-[#FF0000] flex items-center justify-center space-x-2 text-white px-4 py-2 text-sm w-20 rounded-lg">
+                <p>Delete</p>
+              </button>
+            </div>
+          </div>
+        </CenterModal>
+      )}
+      <div className="container mx-auto">
+        <h1 className="p-5 box-decoration-slice bg-gradient-to-r from-indigo-600 to-pink-500 text-white text-center font-bold text-4xl">
+          My products
+        </h1>
+        <div className="w-full flex flex-col gap-4 md:flex-row item md:justify-between my-4">
+          <div className="flex w-full items-center justify-between mt-4">
+            <div className="relative ">
+              <input
+                type="text"
+                placeholder="Search"
+                className="border border-gray-300 rounded-md py-2 px-4 bg-[#C9C9C91F] focus:outline-none focus:ring-2 focus:ring-primary-500 w-96 mx-auto"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <span className="absolute right-3 top-2.5">
+                <AiOutlineSearch className="text-gray-400" />
+              </span>
+            </div>
+          </div>
+          <Button
+            className="md:w-64 w-full"
+            onClick={() => setOpenSideModal(true)}
+            ripple={true}>
+            + Add Product
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 h-[70vh] md:h-[75vh] overflow-y-auto gap-10 p-10">
+          {data?.products?.map(
+            (product: {
+              id: number;
+              title: string;
+              description: string;
+              price: string;
+              rating: string;
+              tags: string;
+            }) => {
+              return (
+                <Card
+                  key={product.id}
+                  color="transparent"
+                  shadow={true}
+                  className="w-full max-w-[26rem]  shadow-white shadow-sm">
+                  <CardHeader color="blue-gray" className="relative h-24">
+                    <img
+                      src={
+                        product.images
+                          ? product.images
+                          : "https://images.unsplash.com/photo-1540553016722-983e48a2cd10?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80"
+                      }
+                      alt=""
+                    />
+                  </CardHeader>
+                  <CardBody>
+                    <Typography variant="h5" color="red">
+                      {product.title}
+                    </Typography>
+                    <Typography className="h-28 overflow-y-auto">
+                      {product.description}
+                    </Typography>
+                    <div className="flex w-full items-center justify-between gap-0.5">
+                      <div className="flex items-center justify-between">
+                        <div className="5 flex items-center gap-0">
+                          <StarIcon />
+
+                          {product.rating}
+                        </div>
+                      </div>
+                      <Typography color="white" className="text-lg font-bold">
+                        {product.price} $
+                      </Typography>
+                    </div>
+                    <Typography color="gray">#{product.tags}</Typography>
+                  </CardBody>
+                  <CardFooter className="pt-0">
+                    <div className="flex gap-2 w-full items-center justify-center ">
+                      <Button
+                        onClick={() => {
+                          setOpenCenterModal(product);
+                          console.log(product);
+                        }}
+                        color="red"
+                        ripple={true}
+                        className="w-full">
+                        DELETE
+                      </Button>
+                      <Button
+                        onClick={() => setOpenSideModal(product)}
+                        color="blue"
+                        ripple={true}
+                        className="w-full">
+                        EDIT
+                      </Button>
+                    </div>
+                  </CardFooter>
+                </Card>
+              );
+            }
+          )}
+        </div>
+        <div className="w-full flex justify-end mt-4">
+          <Pagination
+            handlePagination={handlePagination}
+            total={data?.products?.length}
+            activePage={activePage}
+          />
         </div>
       </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    </>
   );
 }
