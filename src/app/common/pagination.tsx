@@ -15,13 +15,13 @@ const Pagination = (props: Props) => {
       pageRangeDisplayed={3}
       pageCount={props.total}
       previousLabel="< previous"
-      pageLinkClassName="border rounded-md bg-gray-300 font-bold flex justify-center items-center w-[40px] h-full text-xs"
-      previousLinkClassName="text-xs flex justify-center items-center py-2 px-5 border-primary-500 border-[1px] text-[#053DF4] rounded-md font-bold mr-2"
-      nextLinkClassName="text-xs flex justify-center items-center py-2 px-5 border-primary-500 border-[1px] text-[#053DF4] rounded-md font-bold ml-2"
+      pageLinkClassName="border rounded-md bg-transparent font-bold flex justify-center items-center w-[40px] h-full text-xs"
+      previousLinkClassName="text-xs flex justify-center items-center py-2 px-5 border-blue-500 border-[1px] text-red-500 rounded-md font-bold mr-2"
+      nextLinkClassName="text-xs flex justify-center items-center py-2 px-5 border-blue-500 border-[1px] text-red-500 rounded-md font-bold ml-2"
       breakClassName="text-off-gray"
       containerClassName="flex"
       forcePage={props.activePage - 1}
-      activeLinkClassName="text-white font-bold rounded-md flex justify-center items-center px-3 border bg-primary-500"
+      activeLinkClassName="text-red-500 font-bold rounded-md flex justify-center items-center px-3 border bg-green-500"
       renderOnZeroPageCount={null}
     />
   );

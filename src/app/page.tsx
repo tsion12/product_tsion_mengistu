@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import Loading from "./components/loading";
 import { deleteProduct, getAllProducts } from "@/api/get-movies";
 import {
@@ -11,6 +11,8 @@ import {
   Avatar,
   Button,
   CardFooter,
+  Rating,
+  IconButton,
 } from "@material-tailwind/react";
 import { useState } from "react";
 import AddProductsModal from "./components/add-products-modal";
@@ -18,6 +20,7 @@ import toast from "react-hot-toast";
 import CenterModal from "./common/center-modal";
 import Pagination from "./common/pagination";
 import { AiOutlineSearch } from "react-icons/ai";
+import ProductDetailsModal from "./components/product-detail-page";
 
 export interface ProductType {
   id: number;
@@ -25,8 +28,15 @@ export interface ProductType {
   description: string;
   price: number;
   rating: number;
-  tags: string;
+  tags: string[];
   images: string;
+  reviews: {
+    id: number;
+    reviewerName: string;
+    date: string;
+    rating: number;
+    comment: string;
+  }[];
 }
 
 function StarIcon() {
@@ -56,28 +66,29 @@ export default function Home() {
 
   const [activePage, setActivePage] = useState(1);
   const [search, setSearch] = useState("");
+  const [typing, setTyping] = useState("");
   const handlePagination = (value: number) => {
     setActivePage(value);
   };
   const { data, isLoading, isError, refetch } = useQuery({
-    queryFn: async () => await getAllProducts(),
-    queryKey: ["products"], //Array according to Documentation
+    queryFn: async () => await getAllProducts(search, 6, 6 * (activePage - 1)),
+    queryKey: ["products", search, activePage],
   });
-
-  const onDelete = async (id: number) => {
-    try {
-      const response = await deleteProduct(id);
-      const { isDeleted, deletedOn } = response.data;
-
-      if (isDeleted) {
-        toast.success("Product deleted successfully");
-        refetch();
-      } else {
-        toast.error("Failed to delete product");
-      }
-    } catch (error) {
+  const { mutate: deleteProd, isPending: deleteLoading } = useMutation({
+    mutationKey: ["deleteProd"],
+    mutationFn: deleteProduct,
+    onSuccess: () => {
+      toast.success("Product deleted successfully");
+      setOpenCenterModal(false);
+      refetch();
+    },
+    onError: () => {
+      setOpenCenterModal(false);
       toast.error("Failed to delete product");
-    }
+    },
+  });
+  const onDelete = async (id: number) => {
+    deleteProd(id);
   };
 
   if (isLoading) return <Loading />;
@@ -95,47 +106,16 @@ export default function Home() {
         />
       )}
       {details && (
-        <CenterModal
-          size="sm"
-          open={typeof details === "boolean" ? details : false}
-          handleOpen={() => setDetails(false)}>
-          <div className="flex flex-col gap-4 items-center">
-            <div className="flex flex-col gap-2 text-center items-center justify-center">
-              <p> Title: {typeof details !== "boolean" && details?.title}</p>
-
-              <p>Availablity Status : {details?.availabilityStatus} </p>
-              <p>Weight : {details?.weight}</p>
-              <p>Category : {details?.category}</p>
-              <p>Shipping Information : {details?.shippingInformation} </p>
-              <p>
-                Warranty Information
-                {details?.warrantyInformation}
-              </p>
-              <p>
-                Reviews :{" "}
-                {details?.reviews.map((review) => {
-                  return (
-                    <div key={review.id} className="flex flex-col gap-2">
-                      <p>Rating : {review.rating}</p>
-                      <p>Comment : {review.comment}</p>
-                    </div>
-                  );
-                })}
-              </p>
-            </div>
-            <Button
-              onClick={() => setDetails(false)}
-              ripple={true}
-              className="bg-[#0C53A1] flex items-center justify-center space-x-2 text-white px-4 py-2 text-sm w-20 rounded-lg">
-              <p>Close</p>
-            </Button>
-          </div>
-        </CenterModal>
+        <ProductDetailsModal
+          open={typeof details !== "boolean" ? details : false}
+          handleOpen={() => setDetails(false)}
+          data={details}
+        />
       )}
       {openCenterModal && (
         <CenterModal
           size={"sm"}
-          open={typeof openCenterModal === "boolean" ? openCenterModal : false}
+          open={typeof openCenterModal !== "boolean" ? openCenterModal : false}
           handleOpen={() => setOpenCenterModal(false)}>
           <div className="flex flex-col gap-4 items-center">
             <p className="text-xl font-bold text-base-main">
@@ -165,13 +145,15 @@ export default function Home() {
                 <p>No</p>
               </button>
               <button
+                disabled={deleteLoading}
                 onClick={() => {
                   if (typeof openCenterModal !== "boolean") {
                     onDelete(openCenterModal.id);
-                  } else setOpenCenterModal(false);
+                  }
+                  setOpenCenterModal(false);
                 }}
                 className="bg-[#FF0000] flex items-center justify-center space-x-2 text-white px-4 py-2 text-sm w-20 rounded-lg">
-                <p>Delete</p>
+                <p>{deleteLoading ? "Loading..." : "Delete"}</p>{" "}
               </button>
             </div>
           </div>
@@ -188,10 +170,16 @@ export default function Home() {
                 type="text"
                 placeholder="Search"
                 className="border border-gray-300 rounded-md py-2 px-4 bg-[#C9C9C91F] focus:outline-none focus:ring-2 focus:ring-primary-500 w-96 mx-auto"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={typing}
+                onChange={(e) => setTyping(e.target.value)}
               />
-              <span className="absolute right-3 top-2.5">
+              <span
+                onClick={
+                  typing.length > 2
+                    ? () => setSearch(typing)
+                    : () => setSearch("")
+                }
+                className="absolute right-3 top-2.5">
                 <AiOutlineSearch className="text-gray-400" />
               </span>
             </div>
@@ -216,16 +204,18 @@ export default function Home() {
             }) => {
               return (
                 <Card
-                  onClick={() => setDetails(product)}
                   key={product.id}
                   color="transparent"
                   shadow={true}
-                  className="w-full max-w-[26rem] hover:scale-105 cursor-pointer  shadow-white shadow-sm">
-                  <CardHeader color="blue-gray" className="relative h-24">
+                  className="w-full max-w-[26rem]   shadow-white shadow-sm">
+                  <CardHeader
+                    onClick={() => setDetails(product)}
+                    color="blue-gray"
+                    className="relative h-24 hover:scale-105 cursor-pointer">
                     <img
                       src={
-                        product.images
-                          ? product.images
+                        product.thumbnail
+                          ? product.thumbnail
                           : "https://images.unsplash.com/photo-1540553016722-983e48a2cd10?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80"
                       }
                       alt=""
@@ -250,7 +240,15 @@ export default function Home() {
                         {product.price} $
                       </Typography>
                     </div>
-                    <Typography color="gray">#{product.tags}</Typography>
+                    <div className="w-full  flex items-center justify-between">
+                      <Typography color="gray">#{product.tags}</Typography>
+                      <p
+                        onClick={() => setDetails(product)}
+                        className=" text-lg text-blue-800 hover:underline cursor-pointer ">
+                        {" "}
+                        details
+                      </p>
+                    </div>
                   </CardBody>
                   <CardFooter className="pt-0">
                     <div className="flex gap-2 w-full items-center justify-center ">

@@ -20,14 +20,14 @@ export interface ProductValues {
   description: string;
   price: number;
   rating: number;
-  tags: string[];
+  tags: string;
 }
 const validationSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
   price: z.number().min(1, "Price is required and must be greater than 0"),
   rating: z.number().min(1, "Rating is required "),
-  tags: z.array(z.string()).min(1, "Tags must have at least one element"),
+  tags: z.string().min(1, "Tags must have at least one element"),
 });
 
 const validate = (values: ProductValues) => {
@@ -62,6 +62,9 @@ const AddProductsModal = ({ setOpenSideModal, refetch, data }: PropType) => {
         toast.success(`Product ${newProduct.id} successfully added`);
         handleClickOutside();
       },
+      onError: (error) => {
+        toast.error("Error adding product");
+      },
     });
   };
 
@@ -69,9 +72,12 @@ const AddProductsModal = ({ setOpenSideModal, refetch, data }: PropType) => {
     updateProd(values, {
       onSuccess: () => {
         refetch();
-        toast.success("District successfully updated");
+        toast.success("Product successfully updated");
         handleClickOutside();
         setOpenSideModal(false);
+      },
+      onError: () => {
+        toast.error("Error updating product");
       },
     });
   };
@@ -87,7 +93,7 @@ const AddProductsModal = ({ setOpenSideModal, refetch, data }: PropType) => {
           description: data?.description || "",
           price: data?.price || 0,
           rating: data?.rating || 0,
-          tags: data?.tags || [],
+          tags: data?.tags.join(", ") || "",
         }}
         validate={validate}
         onSubmit={data ? onUpdate : onSubmit}>
@@ -106,7 +112,7 @@ const AddProductsModal = ({ setOpenSideModal, refetch, data }: PropType) => {
                   />
                   <div className="flex flex-col w-full items-center justify-center gap-2">
                     <div className="font-semibold text-white text-3xl">
-                      Add Product
+                      {data ? "Edit Product" : "Add Product"}
                     </div>
                     <p className="text-[#84818A] text-sm">
                       Fill in the form below to add a new product
