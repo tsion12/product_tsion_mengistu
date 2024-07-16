@@ -8,6 +8,7 @@ import { MdCancel } from "react-icons/md";
 import FormInput from "../common/form-input";
 import FormTextarea from "../common/form-text-area";
 import { useMutation } from "@tanstack/react-query";
+import { Chip } from "@material-tailwind/react";
 
 type PropType = {
   data?: ProductType;
@@ -150,11 +151,15 @@ const AddProductsModal = ({ setOpenSideModal, refetch, data }: PropType) => {
                     <p className="font-bold">Tags</p>
                     <FormInput name="tags" placeholder="tags" />
                   </div>
-                  {formikProps.values.tags.split(",").map((tag, index) => (
-                    <span key={index} className="text-gray-400 text-sm">
-                      {tag}
-                    </span>
-                  ))}
+                  <div className="flex gap-2">
+                    {formikProps?.values?.tags?.split(",")?.map((item) => (
+                      <Chip
+                        key={`tag-item-${item?.trim()}`}
+                        value={item.trim()}
+                        className="rounded-full"
+                      />
+                    ))}
+                  </div>
                 </div>
 
                 <div className="flex justify-end w-full mt-8">
