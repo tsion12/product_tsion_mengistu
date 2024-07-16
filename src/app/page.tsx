@@ -119,7 +119,9 @@ export default function Home() {
       {openCenterModal && (
         <CenterModal
           size={"sm"}
-          open={typeof openCenterModal !== "boolean" ? !openCenterModal : false}
+          open={
+            typeof openCenterModal !== "boolean" ? !!openCenterModal : false
+          }
           handleOpen={() => setOpenCenterModal(false)}>
           <div className="flex flex-col gap-4 items-center">
             <p className="text-xl font-bold text-base-main">

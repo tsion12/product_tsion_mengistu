@@ -151,7 +151,7 @@ const AddProductsModal = ({ setOpenSideModal, refetch, data }: PropType) => {
                     <p className="font-bold">Tags</p>
                     <FormInput name="tags" placeholder="tags" />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 mt-4">
                     {formikProps?.values?.tags?.split(",")?.map((item) => (
                       <Chip
                         key={`tag-item-${item?.trim()}`}
