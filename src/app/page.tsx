@@ -111,7 +111,7 @@ export default function Home() {
       )}
       {details && (
         <ProductDetailsModal
-          open={typeof details !== "boolean" ? !details : false}
+          open={typeof details !== "boolean" ? !!details : false}
           handleOpen={() => setDetails(false)}
           data={details as ProductType}
         />
